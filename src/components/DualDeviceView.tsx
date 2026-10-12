@@ -17,6 +17,8 @@ interface DualDeviceViewProps {
   onInitiateNfcTap: (targetName: string, amount: number) => void;
   walletBalance: number;
   demoAccountBalance: number;
+  onSent: (amount: number, channel: 'nfc' | 'bluetooth', id: string) => void;
+  onReceived: (amount: number, channel: 'nfc' | 'bluetooth', id: string) => boolean;
   onProfileClick: () => void;
   onOpenHistory: () => void;
   onExitDualView: () => void;
@@ -36,6 +38,8 @@ export const DualDeviceView: React.FC<DualDeviceViewProps> = ({
   onInitiateNfcTap,
   walletBalance,
   demoAccountBalance,
+  onSent,
+  onReceived,
   onProfileClick,
   onOpenHistory,
   onExitDualView,
@@ -118,12 +122,12 @@ export const DualDeviceView: React.FC<DualDeviceViewProps> = ({
             />
             <div className="flex-1 overflow-y-auto pt-4">
               <ConsumerPayScreen
-                onInitiateNfcTap={onInitiateNfcTap}
-                broadcastTerminalAmount={currentBroadcastAmount}
                 walletBalance={walletBalance}
                 profile={profile}
                 onOpenHistory={onOpenHistory}
                 recentTransactions={transactions}
+                onSent={onSent}
+                onReceived={onReceived}
               />
             </div>
           </div>

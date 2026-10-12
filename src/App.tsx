@@ -18,6 +18,7 @@ import { DualDeviceView } from './components/DualDeviceView.tsx';
 import { LegalPage } from './components/LegalPage.tsx';
 import { DEMO_ACCOUNT, DEMO_WALLET } from './demoAccount.ts';
 import { appPath, currentAppPath } from './appPath.ts';
+import { claimPayment, clearPaymentQuery, readIncoming, type PayChannel } from './utils/handoff.ts';
 
 const LEDGER_KEY = 'manepay_ledger_v1';
 
@@ -93,6 +94,7 @@ export default function App() {
   });
 
   const [isDualMode, setIsDualMode] = useState(false);
+  const [notice, setNotice] = useState('');
 
   const [profile, setProfile] = useState<UserProfile>(() => {
     try {
@@ -179,39 +181,83 @@ export default function App() {
     setIsTapModalOpen(true);
   };
 
-  const handlePaymentSuccess = (amount: number, payeeName: string) => {
-    // Deduct from consumer wallet
+  const handleSentToOtherPhone = (amount: number, channel: PayChannel, id: string) => {
+    claimPayment(id);
     setWalletBalance((prev) => parseFloat(Math.max(0, prev - amount).toFixed(2)));
+    setTransactions((prev) => [
+      {
+        id: `out-${id}`,
+        name: 'Other phone',
+        device: channel === 'nfc' ? 'NFC tag' : 'Bluetooth',
+        type: channel === 'nfc' ? 'NFC Tap Completed' : 'BLE Beam Completed',
+        amount,
+        timestamp: new Date().toISOString(),
+        timeAgo: 'Just now',
+        tokenHash: id,
+        status: 'pending',
+        iconType: channel === 'nfc' ? 'nfc' : 'ble',
+        direction: 'debit',
+        category: 'Sent to another phone',
+      },
+      ...prev,
+    ]);
+  };
 
-    // Record as debit transaction in history
-    const userDebitTx: Transaction = {
-      id: `tx-user-${Date.now()}`,
-      name: payeeName,
-      device: 'Personal Phone • NFC',
-      type: 'NFC Tap Completed',
-      amount: amount,
-      timestamp: new Date().toISOString(),
-      timeAgo: 'Just now',
-      tokenHash: `local-${Date.now()}`,
-      status: 'pending',
-      iconType: 'nfc',
-      direction: 'debit',
-      category: 'Offline payment',
-    };
+  const handleReceivedFromOtherPhone = (amount: number, channel: PayChannel, id: string) => {
+    if (!claimPayment(id)) return false;
+    setWalletBalance((prev) => parseFloat((prev + amount).toFixed(2)));
+    setTransactions((prev) => [
+      {
+        id: `in-${id}`,
+        name: 'Other phone',
+        device: channel === 'nfc' ? 'NFC tag' : 'Bluetooth',
+        type: channel === 'nfc' ? 'NFC Tap Completed' : 'BLE Beam Completed',
+        amount,
+        timestamp: new Date().toISOString(),
+        timeAgo: 'Just now',
+        tokenHash: id,
+        status: 'pending',
+        iconType: channel === 'nfc' ? 'nfc' : 'ble',
+        direction: 'credit',
+        category: 'Received from another phone',
+      },
+      ...prev,
+    ]);
+    setNotice(`Received ₹${amount.toFixed(2)} from the other phone.`);
+    setActiveRole('consumer');
+    setCurrentTab('pay');
+    try {
+      localStorage.setItem('manepay_active_role', 'consumer');
+    } catch {}
+    return true;
+  };
 
-    setTransactions((prev) => [userDebitTx, ...prev]);
+  useEffect(() => {
+    const incoming = readIncoming(window.location.search);
+    if (!incoming) return;
+    handleReceivedFromOtherPhone(incoming.amount, incoming.channel, incoming.id);
+    clearPaymentQuery();
+  }, []);
 
-    if (payeeName.includes('ManePay') || payeeName.includes('terminal')) {
-      handleNewMerchantTransaction({
-        name: profile.name,
+  const handlePaymentSuccess = (amount: number, payeeName: string) => {
+    setWalletBalance((prev) => parseFloat(Math.max(0, prev - amount).toFixed(2)));
+    setTransactions((prev) => [
+      {
+        id: `tx-user-${Date.now()}`,
+        name: payeeName,
         device: 'This phone',
         type: 'NFC Tap Completed',
-        amount: amount,
+        amount,
+        timestamp: new Date().toISOString(),
+        timeAgo: 'Just now',
+        tokenHash: `local-${Date.now()}`,
+        status: 'pending',
         iconType: 'nfc',
-        direction: 'credit',
-      });
-      setBroadcastAmount(0);
-    }
+        direction: 'debit',
+        category: 'Offline payment',
+      },
+      ...prev,
+    ]);
   };
 
   const handleExecutePayout = (amount: number) => {
@@ -276,6 +322,8 @@ export default function App() {
           onOpenHistory={() => setIsHistoryModalOpen(true)}
           onExitDualView={() => setIsDualMode(false)}
           profile={profile}
+          onSent={handleSentToOtherPhone}
+          onReceived={handleReceivedFromOtherPhone}
         />
       ) : (
         /* Single Mobile Shell View */
@@ -297,6 +345,7 @@ export default function App() {
           )}
 
           {/* Main Screen Content */}
+          {notice ? <p className="px-4 py-2 text-sm text-[#00e599]">{notice}</p> : null}
           <main className="flex-1 flex flex-col relative w-full">
             {currentTab === 'onboarding' && (
               <OnboardingScreen onSelectRoleAndContinue={handleSelectRoleAndContinue} />
@@ -322,12 +371,12 @@ export default function App() {
             {currentTab === 'pay' && (
               <div className="pt-4 flex-1">
                 <ConsumerPayScreen
-                  onInitiateNfcTap={handleInitiateNfcTap}
-                  broadcastTerminalAmount={broadcastAmount}
                   walletBalance={walletBalance}
                   profile={profile}
                   onOpenHistory={() => setIsHistoryModalOpen(true)}
                   recentTransactions={transactions}
+                  onSent={handleSentToOtherPhone}
+                  onReceived={handleReceivedFromOtherPhone}
                 />
               </div>
             )}
