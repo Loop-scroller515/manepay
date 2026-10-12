@@ -26,49 +26,30 @@ export const BottomNav: React.FC<BottomNavProps> = ({
   return (
     <nav className="fixed bottom-0 inset-x-0 z-40 pb-safe bg-[#10141a]/95 backdrop-blur-2xl shadow-[0_-2px_16px_rgba(0,0,0,0.4)] border-t border-white/[0.04]">
       <div className="flex items-center justify-around h-16 px-space-xs max-w-md mx-auto relative">
-        {activeRole === 'merchant' ? (
-          /* Merchant Primary Tab */
-          <button
-            onClick={() => {
-              playHapticClick();
-              onTabChange('merchant');
-            }}
-            className={`flex flex-col items-center justify-center min-w-[56px] min-h-[44px] transition-all gap-0.5 ${
-              currentTab === 'merchant'
-                ? 'text-[#4cd7f6] font-semibold scale-105'
-                : 'text-[#bacbbe] hover:text-[#dfe2eb]'
-            }`}
-          >
-            <span
-              className="material-symbols-outlined text-[22px]"
-              style={currentTab === 'merchant' ? { fontVariationSettings: "'FILL' 1" } : undefined}
-            >
-              point_of_sale
-            </span>
-            <span className="font-badge-label text-[10px]">Terminal</span>
-          </button>
-        ) : (
-          /* Consumer Primary Tab */
-          <button
-            onClick={() => {
-              playHapticClick();
-              onTabChange('pay');
-            }}
-            className={`flex flex-col items-center justify-center min-w-[56px] min-h-[44px] transition-all gap-0.5 ${
-              currentTab === 'pay'
-                ? 'text-[#6dffba] font-semibold scale-105'
-                : 'text-[#bacbbe] hover:text-[#dfe2eb]'
-            }`}
-          >
-            <span
-              className="material-symbols-outlined text-[22px]"
-              style={currentTab === 'pay' ? { fontVariationSettings: "'FILL' 1" } : undefined}
-            >
-              contactless
-            </span>
-            <span className="font-badge-label text-[10px]">Pay</span>
-          </button>
-        )}
+        <button
+          onClick={() => {
+            playHapticClick();
+            onTabChange('pay');
+          }}
+          className={`flex flex-col items-center justify-center min-w-[56px] min-h-[44px] ${
+            currentTab === 'pay' ? 'text-[#6dffba] font-semibold' : 'text-[#bacbbe]'
+          }`}
+          type="button"
+        >
+          <span className="font-badge-label text-[13px]">Pay</span>
+        </button>
+        <button
+          onClick={() => {
+            playHapticClick();
+            onTabChange('merchant');
+          }}
+          className={`flex flex-col items-center justify-center min-w-[56px] min-h-[44px] ${
+            currentTab === 'merchant' ? 'text-[#4cd7f6] font-semibold' : 'text-[#bacbbe]'
+          }`}
+          type="button"
+        >
+          <span className="font-badge-label text-[13px]">Terminal</span>
+        </button>
 
         {/* Transaction History / Ledger */}
         {onOpenHistory && (

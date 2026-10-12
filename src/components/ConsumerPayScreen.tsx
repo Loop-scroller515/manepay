@@ -63,7 +63,7 @@ export const ConsumerPayScreen: React.FC<ConsumerPayScreenProps> = ({
           }}
           className="mt-3 w-full h-12 bg-[#00e599] text-[#00613e] font-semibold disabled:opacity-40"
         >
-          Store payment
+          Pay
         </button>
         {amount > walletBalance && (
           <p className="mt-2 text-sm text-[#ffb4ab]">Amount is above the demo wallet.</p>

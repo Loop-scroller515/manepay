@@ -345,9 +345,12 @@ export default function App() {
             <BottomNav
               currentTab={currentTab}
               onTabChange={(tab) => {
-                // Prevent role breach: consumer cannot switch to merchant without logout
-                if (activeRole === 'consumer' && tab === 'merchant') return;
-                if (activeRole === 'merchant' && tab === 'pay') return;
+                if (tab === 'pay' || tab === 'merchant') {
+                  setActiveRole(tab === 'pay' ? 'consumer' : 'merchant');
+                  try {
+                    localStorage.setItem('manepay_active_role', tab === 'pay' ? 'consumer' : 'merchant');
+                  } catch {}
+                }
                 setCurrentTab(tab);
               }}
               activeRole={activeRole}

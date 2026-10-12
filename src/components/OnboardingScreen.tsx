@@ -128,10 +128,10 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
                 </div>
                 <div className="flex flex-col min-w-0">
                   <h2 className="font-headline-sm text-headline-sm text-[#dfe2eb] tracking-tight font-semibold">
-                    Consumer / Individual
+                    Pay
                   </h2>
                   <p className="font-body-sm text-body-sm text-[#bacbbe] mt-1 leading-snug">
-                    Enter an amount and store it against the demo wallet on this phone.
+                    Enter an amount and pay from the demo account on this phone.
                   </p>
                 </div>
               </div>
@@ -219,8 +219,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
               }`}
               type="button"
             >
-              <span>{selectedRole === 'consumer' ? 'Continue as Consumer' : 'Launch SoftPOS Terminal'}</span>
-              <span className="material-symbols-outlined text-[20px] font-bold">arrow_forward</span>
+              <span>{selectedRole === 'consumer' ? 'Pay' : 'Open merchant terminal'}</span>
             </button>
 
             {/* Cryptographic Security Footer */}

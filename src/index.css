@@ -49,8 +49,8 @@
   --color-on-background: #dfe2eb;
   --color-surface-variant: #31353c;
 
-  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  --font-sans: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: ui-monospace, 'Cascadia Mono', 'Segoe UI Mono', monospace;
 }
 
 @layer base {
@@ -60,7 +60,7 @@
     padding: 0;
     background-color: #10141a;
     color: #dfe2eb;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
   }
   
   body {
@@ -153,7 +153,7 @@
 }
 
 .font-label-mono-sm {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: ui-monospace, 'Cascadia Mono', 'Segoe UI Mono', monospace;
   font-size: 11px;
   line-height: 14px;
   letter-spacing: 0.04em;
@@ -161,7 +161,7 @@
 }
 
 .font-label-mono-md {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: ui-monospace, 'Cascadia Mono', 'Segoe UI Mono', monospace;
   font-size: 13px;
   line-height: 16px;
   letter-spacing: 0.02em;
@@ -194,19 +194,7 @@
 }
 
 .material-symbols-outlined {
-  font-family: 'Material Symbols Outlined';
-  font-weight: normal;
-  font-style: normal;
-  font-size: 24px;
-  line-height: 1;
-  letter-spacing: normal;
-  text-transform: none;
-  display: inline-block;
-  white-space: nowrap;
-  word-wrap: normal;
-  direction: ltr;
-  -webkit-font-feature-settings: 'liga';
-  -webkit-font-smoothing: antialiased;
+  display: none;
 }
 
 button.rounded-full {
