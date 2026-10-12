@@ -6,7 +6,7 @@ Instant cryptographically secure BLE & NFC proximity payments, SoftPOS mobile te
 
 ## 🚀 Running Locally
 
-**Prerequisites:** Node.js 18+ (tested on Node 22)
+**Prerequisites:** Node.js 20.19+ or 22.12+ (required by Vite 8)
 
 1. **Install dependencies:**
    ```bash
@@ -35,6 +35,7 @@ Instant cryptographically secure BLE & NFC proximity payments, SoftPOS mobile te
    ```
    Or run the included production Node server:
    ```bash
+   npm run build
    npm start
    ```
 

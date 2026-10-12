@@ -8,7 +8,8 @@ const __dirname = fileURLToPath(new URL('.', import.meta.url));
 
 export default defineConfig(() => {
   return {
-    base: './',
+    // Use root-relative asset URLs on regular hosts. GitHub Pages sets a repo base in CI.
+    base: process.env.VITE_BASE_PATH || '/',
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: {
