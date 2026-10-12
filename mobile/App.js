@@ -15,7 +15,7 @@ import {
 } from 'react-native';
 import { WebView } from 'react-native-webview';
 
-const SITE_URL = 'https://manepay.vercel.app/';
+const SITE_URL = 'https://loop-scroller515.github.io/manepay/';
 const STORAGE_KEY = 'manepay_offline_ledger_v1';
 
 export default function App() {

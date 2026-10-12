@@ -1,4 +1,5 @@
 import React from 'react';
+import { appPath } from '../appPath.ts';
 
 type LegalKind = 'privacy' | 'terms';
 
@@ -10,7 +11,7 @@ export const LegalPage: React.FC<{ kind: LegalKind }> = ({ kind }) => {
   return (
     <div className="min-h-screen bg-[#10141a] text-[#dfe2eb]">
       <main className="max-w-2xl mx-auto px-5 py-8">
-        <a href="/" className="text-sm text-[#00e599] underline">
+        <a href={appPath('/')} className="text-sm text-[#00e599] underline">
           Back to ManePay
         </a>
         <h1 className="mt-6 text-2xl font-semibold">{title}</h1>

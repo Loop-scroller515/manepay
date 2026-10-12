@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { StatusBar } from './StatusBar.tsx';
 import { UserRole } from '../types/fluxpay.ts';
 import { playHapticClick } from '../utils/audio.ts';
+import { appPath } from '../appPath.ts';
 
 interface OnboardingScreenProps {
   onSelectRoleAndContinue: (role: UserRole) => void;
@@ -224,8 +225,8 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
 
             {/* Cryptographic Security Footer */}
             <div className="flex items-center justify-center gap-4 text-sm">
-              <a href="/privacy" className="text-[#849589] underline">Privacy policy</a>
-              <a href="/terms" className="text-[#849589] underline">Terms and conditions</a>
+              <a href={appPath('/privacy')} className="text-[#849589] underline">Privacy policy</a>
+              <a href={appPath('/terms')} className="text-[#849589] underline">Terms and conditions</a>
             </div>
           </div>
         </div>

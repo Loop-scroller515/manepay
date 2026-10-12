@@ -17,6 +17,7 @@ import { TransactionHistoryModal } from './components/TransactionHistoryModal.ts
 import { DualDeviceView } from './components/DualDeviceView.tsx';
 import { LegalPage } from './components/LegalPage.tsx';
 import { DEMO_ACCOUNT, DEMO_WALLET } from './demoAccount.ts';
+import { appPath, currentAppPath } from './appPath.ts';
 
 const LEDGER_KEY = 'manepay_ledger_v1';
 
@@ -249,7 +250,7 @@ export default function App() {
     } catch {}
   }, [transactions, todaySales, pendingSettlement, totalTransactionsCount, walletBalance, demoAccountBalance]);
 
-  const path = window.location.pathname.replace(/\/$/, '') || '/';
+  const path = currentAppPath();
   if (path === '/privacy' || path === '/terms') {
     return <LegalPage kind={path === '/privacy' ? 'privacy' : 'terms'} />;
   }
@@ -335,8 +336,8 @@ export default function App() {
           {/* Bottom Nav if not on onboarding screen */}
           {currentTab !== 'onboarding' && (
             <div className="px-4 pt-2 flex gap-4 text-xs bg-[#10141a]">
-              <a href="/privacy" className="text-[#849589] underline">Privacy</a>
-              <a href="/terms" className="text-[#849589] underline">Terms</a>
+              <a href={appPath('/privacy')} className="text-[#849589] underline">Privacy</a>
+              <a href={appPath('/terms')} className="text-[#849589] underline">Terms</a>
             </div>
           )}
 

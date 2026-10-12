@@ -45,7 +45,7 @@ export const Header: React.FC<HeaderProps> = ({
           <img
             alt="ManePay"
             className="h-8 w-8 object-contain"
-            src="/favicon.svg"
+            src={`${import.meta.env.BASE_URL}favicon.svg`}
           />
           <div className="flex items-center gap-1.5">
             <span className="font-headline-sm text-headline-sm tracking-tight text-[#dfe2eb] font-semibold">
