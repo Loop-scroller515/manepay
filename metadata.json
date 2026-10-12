@@ -1,0 +1,6 @@
+{
+  "name": "FluxPay Proximity - Contactless Payments & SoftPOS",
+  "description": "Instant cryptographically secure BLE & NFC proximity payments, SoftPOS mobile terminal, and realtime settlement radar.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
