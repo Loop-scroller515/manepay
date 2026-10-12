@@ -338,7 +338,7 @@ export const MerchantTerminalScreen: React.FC<MerchantTerminalScreenProps> = ({
                 <div className="text-xs font-normal text-[#849589]">{tx.status === 'pending' ? 'Pending' : 'Settled on device'}</div>
               </div>
             </div>
-          )}
+          ))}
         </div>
       </div>
     </div>
