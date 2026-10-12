@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { UserProfile } from '../types/fluxpay.ts';
 import { playHapticClick } from '../utils/audio.ts';
+import { DEMO_ACCOUNT, DEMO_WALLET } from '../demoAccount.ts';
 
 interface ProfileModalProps {
   isOpen: boolean;
@@ -10,14 +11,6 @@ interface ProfileModalProps {
   onResetDemo: () => void;
   onLogout?: () => void;
 }
-
-const AVATAR_PRESETS = [
-  'https://lh3.googleusercontent.com/aida-public/AB6AXuAMk4XDFV_T6RS0_tEz6UOT_Ia3OlDPqovPdMbut3tltwlj9RYxP8S4O9IpFy4gWTAmQrnAWzXs6WVYbERUAsUJDcNNEnyW9YeB8iPL2hLknRy7Vp4zqzWLa6WFH3zv_2aPPa1UgZs52kYESYo3JJtESez3diTFtw0xLyYl-nQohW5yMPrhswPKITsbrHhDwwqPq0fVNttH7phtTuhH53t_B6HCAOu-wExTjW6dkMR-y3-wmf62fPut',
-  'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&h=256&q=80',
-  'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=256&h=256&q=80',
-  'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=256&h=256&q=80',
-  'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=256&h=256&q=80',
-];
 
 export const ProfileModal: React.FC<ProfileModalProps> = ({
   isOpen,
@@ -32,8 +25,6 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
   const [fluxId, setFluxId] = useState(profile.fluxId);
   const [phone, setPhone] = useState(profile.phone);
   const [isEditing, setIsEditing] = useState(false);
-  const [showUrlInput, setShowUrlInput] = useState(false);
-  const [customUrl, setCustomUrl] = useState('');
   const [saveSuccess, setSaveSuccess] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -45,10 +36,10 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
     playHapticClick();
     onUpdateProfile({
       ...profile,
-      name: name.trim() || 'Aaditya Menon',
+      name: name.trim(),
       avatarUrl,
-      fluxId: fluxId.trim() || 'aaditya@flux',
-      phone: phone.trim() || '+91 98765 43210',
+      fluxId: fluxId.trim(),
+      phone: phone.trim(),
     });
     setSaveSuccess(true);
     setIsEditing(false);
@@ -73,15 +64,6 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
     }
   };
 
-  const handleApplyCustomUrl = () => {
-    if (customUrl.trim()) {
-      setAvatarUrl(customUrl.trim());
-      setShowUrlInput(false);
-      setCustomUrl('');
-      playHapticClick();
-    }
-  };
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
       <div className="w-full max-w-md bg-[#181c22] border border-white/10 rounded-3xl p-6 shadow-2xl relative overflow-hidden flex flex-col max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-200">
@@ -100,10 +82,10 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
         <div className="flex items-center justify-between mb-4 pr-8">
           <div>
             <h2 className="font-headline-sm text-headline-sm text-[#dfe2eb] font-semibold">
-              User Profile & Enclave ID
+              Profile
             </h2>
             <p className="font-body-sm text-body-sm text-[#bacbbe]">
-              Manage your personal identity & proximity tokens
+              Name and phone stay on this phone.
             </p>
           </div>
         </div>
@@ -111,7 +93,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
         {saveSuccess && (
           <div className="mb-4 p-2.5 rounded-xl bg-[#00e599]/15 border border-[#00e599]/30 text-[#6dffba] text-xs font-label-mono-sm flex items-center gap-2">
             <span className="material-symbols-outlined text-[16px]">check_circle</span>
-            <span>Profile and avatar updated successfully!</span>
+            <span>Profile saved on this phone.</span>
           </div>
         )}
 
@@ -120,25 +102,17 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
           {/* Avatar Section */}
           <div className="flex flex-col items-center justify-center py-2 bg-[#10141a] rounded-2xl p-4 border border-white/5 relative">
             <div className="relative group mb-3">
-              <img
-                alt={name}
-                className="w-20 h-20 rounded-full object-cover border-2 border-[#00e599] shadow-[0_0_16px_rgba(0,229,153,0.3)]"
-                src={avatarUrl}
-                referrerPolicy="no-referrer"
-                onError={(e) => {
-                  // Fallback if URL fails
-                  (e.target as HTMLImageElement).src = AVATAR_PRESETS[0];
-                }}
-              />
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="absolute inset-0 rounded-full bg-black/60 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center text-white transition-opacity cursor-pointer text-[10px] font-semibold"
-                title="Upload Photo"
-              >
-                <span className="material-symbols-outlined text-[20px]">photo_camera</span>
-                <span>Change</span>
-              </button>
+              {avatarUrl && !avatarUrl.includes('googleusercontent') && !avatarUrl.includes('unsplash.com') ? (
+                <img
+                  alt={name || 'Profile'}
+                  className="w-20 h-20 object-cover border-2 border-[#00e599]"
+                  src={avatarUrl}
+                />
+              ) : (
+                <div className="w-20 h-20 bg-[#262a31] border-2 border-[#00e599] flex items-center justify-center text-lg text-[#dfe2eb]">
+                  {(name || 'MP').slice(0, 2).toUpperCase()}
+                </div>
+              )}
               <input
                 ref={fileInputRef}
                 type="file"
@@ -148,66 +122,13 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
               />
             </div>
 
-            <div className="flex items-center gap-2 mb-2">
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="px-2.5 py-1 rounded-full bg-[#262a31] hover:bg-[#353940] text-xs font-label-mono-sm text-[#dfe2eb] flex items-center gap-1 border border-white/5 transition-colors"
-              >
-                <span className="material-symbols-outlined text-[14px]">upload</span>
-                <span>Upload Photo</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowUrlInput(!showUrlInput)}
-                className="px-2.5 py-1 rounded-full bg-[#262a31] hover:bg-[#353940] text-xs font-label-mono-sm text-[#4cd7f6] flex items-center gap-1 border border-white/5 transition-colors"
-              >
-                <span className="material-symbols-outlined text-[14px]">link</span>
-                <span>Image URL</span>
-              </button>
-            </div>
-
-            {/* Custom URL Input dropdown */}
-            {showUrlInput && (
-              <div className="w-full flex items-center gap-1.5 mt-2 bg-[#1c2026] p-1.5 rounded-xl border border-white/10">
-                <input
-                  type="url"
-                  placeholder="Paste direct image URL..."
-                  value={customUrl}
-                  onChange={(e) => setCustomUrl(e.target.value)}
-                  className="flex-1 bg-transparent text-xs text-[#dfe2eb] px-2 py-1 outline-none font-mono"
-                />
-                <button
-                  type="button"
-                  onClick={handleApplyCustomUrl}
-                  className="px-3 py-1 bg-[#00e599] text-[#00613e] rounded-lg text-xs font-bold hover:bg-[#4dffb2]"
-                >
-                  Apply
-                </button>
-              </div>
-            )}
-
-            {/* Preset Avatars Carousel */}
-            <div className="flex items-center gap-2 mt-2">
-              <span className="text-[10px] text-[#849589] uppercase tracking-wider font-label-mono-sm">Presets:</span>
-              <div className="flex items-center gap-1.5">
-                {AVATAR_PRESETS.map((preset, idx) => (
-                  <button
-                    key={idx}
-                    type="button"
-                    onClick={() => {
-                      setAvatarUrl(preset);
-                      playHapticClick();
-                    }}
-                    className={`w-7 h-7 rounded-full overflow-hidden border transition-all ${
-                      avatarUrl === preset ? 'border-[#00e599] scale-110 shadow-[0_0_8px_#00e599]' : 'border-white/10 opacity-70 hover:opacity-100'
-                    }`}
-                  >
-                    <img src={preset} alt={`Avatar ${idx + 1}`} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                  </button>
-                ))}
-              </div>
-            </div>
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="px-2.5 py-1 bg-[#262a31] hover:bg-[#353940] text-xs text-[#dfe2eb] border border-white/5"
+            >
+              Upload your photo
+            </button>
           </div>
 
           {/* User Fields */}
@@ -235,7 +156,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                   type="text"
                   value={fluxId}
                   onChange={(e) => setFluxId(e.target.value)}
-                  placeholder="e.g. name@flux"
+                  placeholder="name@bank"
                   className="w-full bg-[#10141a] border border-white/10 focus:border-[#4cd7f6] rounded-xl px-3 py-2 text-xs text-[#dfe2eb] font-mono outline-none transition-colors"
                 />
               </div>
@@ -247,17 +168,22 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                   type="text"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  placeholder="+91 98765 43210"
+                  placeholder="Mobile number"
                   className="w-full bg-[#10141a] border border-white/10 focus:border-[#00e599] rounded-xl px-3 py-2 text-xs text-[#dfe2eb] font-mono outline-none transition-colors"
                 />
               </div>
+            </div>
+            <div className="mt-3 bg-[#10141a] border border-white/10 p-3 text-xs text-[#bacbbe] space-y-1">
+              <div>Paying account: {DEMO_WALLET.holder}, {DEMO_WALLET.accountNumber}</div>
+              <div>Settlement account: {DEMO_ACCOUNT.holder}, {DEMO_ACCOUNT.accountNumber}</div>
+              <div>{DEMO_ACCOUNT.note}</div>
             </div>
           </div>
 
           {/* Action Button */}
           <button
             type="submit"
-            className="w-full h-11 rounded-full bg-[#00e599] text-[#00613e] font-headline-sm text-sm flex items-center justify-center gap-1.5 font-bold shadow-[0_0_16px_rgba(0,229,153,0.3)] hover:bg-[#4dffb2] active:scale-95 transition-all mt-1"
+            className="w-full h-11 bg-[#00e599] text-[#00613e] font-headline-sm text-sm flex items-center justify-center gap-1.5 font-bold mt-1"
           >
             <span className="material-symbols-outlined text-[18px]">save</span>
             <span>Save Profile Changes</span>
@@ -267,20 +193,12 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
         {/* Security Hardware Diagnostics */}
         <div className="mt-4 pt-3 border-t border-white/[0.06] space-y-2 text-xs font-label-mono-sm text-[#849589]">
           <div className="flex justify-between">
-            <span>Terminal Currency:</span>
-            <span className="text-[#6dffba] font-bold">Indian Rupee (INR ₹)</span>
+            <span>Currency:</span>
+            <span className="text-[#6dffba] font-bold">INR</span>
           </div>
           <div className="flex justify-between">
-            <span>PCI-PTS Compliance:</span>
-            <span className="text-[#6dffba]">Level 4 Hardware Pass</span>
-          </div>
-          <div className="flex justify-between">
-            <span>Secure Enclave Hash:</span>
-            <span className="text-[#dfe2eb] font-mono">0x992B...4A01</span>
-          </div>
-          <div className="flex justify-between">
-            <span>Settlement Rail:</span>
-            <span className="text-[#4cd7f6]">UPI / IMPS 2.0 Instant Rail</span>
+            <span>Bank connection:</span>
+            <span className="text-[#dfe2eb]">None in this build</span>
           </div>
         </div>
 
@@ -327,7 +245,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
             }}
             className="w-full py-2 rounded-xl bg-[#262a31] hover:bg-[#31353c] text-[#849589] hover:text-[#dfe2eb] font-label-mono-sm text-xs font-semibold transition-colors border border-white/5"
           >
-            Reset Demo Data & Transaction History
+            Reset ledger on this phone
           </button>
         </div>
       </div>

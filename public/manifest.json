@@ -1,5 +1,5 @@
 {
-  "name": "ManePay - Offline Proximity Payments",
+  "name": "ManePay",
   "short_name": "ManePay",
   "start_url": "./",
   "display": "standalone",
@@ -8,14 +8,14 @@
   "orientation": "portrait",
   "icons": [
     {
-      "src": "https://lh3.googleusercontent.com/aida/AEtjO1XIhVTgLxKgK1wT8lCIL1L_-ugQvSsH-ZrUsqUGaxSw0xVD7NeXzx2WYMftc1l9BApqK5MMTqiyIYWYoADZssDwMYUf96DUCHGwpEN5u-I4x1ic5Geao1r-s_Pc2cuBozyrp29mvJWDLwnj9S8bSvw9sTCOI-iwwFqbKm2Qq2cD4czVO7iEAztM4de_zuej_46huuaS31-KEsCuAAzpXJI5zEbFmOKptfR23giHY5Wx74YKSE_xPpQckA",
-      "sizes": "192x192",
-      "type": "image/png"
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
     },
     {
-      "src": "https://lh3.googleusercontent.com/aida/AEtjO1XIhVTgLxKgK1wT8lCIL1L_-ugQvSsH-ZrUsqUGaxSw0xVD7NeXzx2WYMftc1l9BApqK5MMTqiyIYWYoADZssDwMYUf96DUCHGwpEN5u-I4x1ic5Geao1r-s_Pc2cuBozyrp29mvJWDLwnj9S8bSvw9sTCOI-iwwFqbKm2Qq2cD4czVO7iEAztM4de_zuej_46huuaS31-KEsCuAAzpXJI5zEbFmOKptfR23giHY5Wx74YKSE_xPpQckA",
-      "sizes": "512x512",
-      "type": "image/png"
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
     }
   ]
 }

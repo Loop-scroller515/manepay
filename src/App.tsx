@@ -15,74 +15,63 @@ import { InstantTransferModal } from './components/InstantTransferModal.tsx';
 import { ProfileModal } from './components/ProfileModal.tsx';
 import { TransactionHistoryModal } from './components/TransactionHistoryModal.tsx';
 import { DualDeviceView } from './components/DualDeviceView.tsx';
+import { LegalPage } from './components/LegalPage.tsx';
+import { DEMO_ACCOUNT, DEMO_WALLET } from './demoAccount.ts';
+
+const LEDGER_KEY = 'manepay_ledger_v1';
 
 const DEFAULT_PROFILE: UserProfile = {
-  name: 'Aaditya Menon',
-  avatarUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAMk4XDFV_T6RS0_tEz6UOT_Ia3OlDPqovPdMbut3tltwlj9RYxP8S4O9IpFy4gWTAmQrnAWzXs6WVYbERUAsUJDcNNEnyW9YeB8iPL2hLknRy7Vp4zqzWLa6WFH3zv_2aPPa1UgZs52kYESYo3JJtESez3diTFtw0xLyYl-nQohW5yMPrhswPKITsbrHhDwwqPq0fVNttH7phtTuhH53t_B6HCAOu-wExTjW6dkMR-y3-wmf62fPut',
-  fluxId: 'aaditya@flux',
-  phone: '+91 98765 43210',
+  name: DEMO_WALLET.holder,
+  avatarUrl: '',
+  fluxId: 'demo@manepay',
+  phone: '9000000000',
   role: 'consumer',
-  merchantId: 'MCH-88294',
+  merchantId: DEMO_ACCOUNT.accountNumber,
 };
 
-const INITIAL_TRANSACTIONS: Transaction[] = [
-  {
-    id: 'tx-1',
-    name: 'Elena R.',
-    device: 'iPhone 15 Pro',
-    type: 'NFC Tap Completed',
-    amount: 145.00,
-    timestamp: new Date(Date.now() - 2 * 60 * 1000).toISOString(),
-    timeAgo: '2 min ago',
-    tokenHash: '0x9E71F290',
-    status: 'settled',
-    iconType: 'nfc',
-    direction: 'credit',
-    category: 'Retail Counter',
-  },
-  {
-    id: 'tx-2',
-    name: 'Anonymous Customer',
-    device: 'Pixel 8',
-    type: 'BLE Beam Completed',
-    amount: 82.50,
-    timestamp: new Date(Date.now() - 14 * 60 * 1000).toISOString(),
-    timeAgo: '14 min ago',
-    tokenHash: '0x3A08C741',
-    status: 'settled',
-    iconType: 'ble',
-    direction: 'credit',
-    category: 'SoftPOS Proximity',
-  },
-  {
-    id: 'tx-3',
-    name: 'Blue Bottle Coffee',
-    device: 'Station POS #2',
-    type: 'NFC Tap Completed',
-    amount: 240.00,
-    timestamp: new Date(Date.now() - 45 * 60 * 1000).toISOString(),
-    timeAgo: '45 min ago',
-    tokenHash: '0x5C91B402',
-    status: 'settled',
-    iconType: 'nfc',
-    direction: 'debit',
-    category: 'Food & Beverage',
-  },
-  {
-    id: 'tx-4',
-    name: 'Metro Transit Gate 04',
-    device: 'Turnstile Reader',
-    type: 'NFC Tap Completed',
-    amount: 35.00,
-    timestamp: new Date(Date.now() - 120 * 60 * 1000).toISOString(),
-    timeAgo: '2 hours ago',
-    tokenHash: '0x7F22A190',
-    status: 'settled',
-    iconType: 'nfc',
-    direction: 'debit',
-    category: 'Transit',
-  },
-];
+type LedgerState = {
+  transactions: Transaction[];
+  todaySales: number;
+  pendingSettlement: number;
+  totalTransactionsCount: number;
+  walletBalance: number;
+  demoAccountBalance: number;
+};
+
+const EMPTY_LEDGER: LedgerState = {
+  transactions: [],
+  todaySales: 0,
+  pendingSettlement: 0,
+  totalTransactionsCount: 0,
+  walletBalance: DEMO_WALLET.openingBalance,
+  demoAccountBalance: DEMO_ACCOUNT.openingBalance,
+};
+
+function loadLedger(): LedgerState {
+  try {
+    const raw = localStorage.getItem(LEDGER_KEY);
+    if (!raw) return EMPTY_LEDGER;
+    const parsed = JSON.parse(raw) as Partial<LedgerState>;
+    return {
+      transactions: Array.isArray(parsed.transactions) ? parsed.transactions : [],
+      todaySales: Number(parsed.todaySales) || 0,
+      pendingSettlement: Number(parsed.pendingSettlement) || 0,
+      totalTransactionsCount: Number(parsed.totalTransactionsCount) || 0,
+      walletBalance: Number.isFinite(parsed.walletBalance) ? Number(parsed.walletBalance) : DEMO_WALLET.openingBalance,
+      demoAccountBalance: Number.isFinite(parsed.demoAccountBalance)
+        ? Number(parsed.demoAccountBalance)
+        : DEMO_ACCOUNT.openingBalance,
+    };
+  } catch {
+    return EMPTY_LEDGER;
+  }
+}
+
+function cleanProfile(profile: UserProfile): UserProfile {
+  const avatar = profile.avatarUrl || '';
+  const stock = avatar.includes('googleusercontent') || avatar.includes('unsplash.com') || avatar.includes('aida');
+  return stock ? { ...profile, avatarUrl: '' } : profile;
+}
 
 export default function App() {
   const [activeRole, setActiveRole] = useState<UserRole | null>(() => {
@@ -102,14 +91,12 @@ export default function App() {
     return 'onboarding';
   });
 
-  const [demoSimulationActive, setDemoSimulationActive] = useState(true);
   const [isDualMode, setIsDualMode] = useState(false);
 
-  // User Profile state with local persistence
   const [profile, setProfile] = useState<UserProfile>(() => {
     try {
       const saved = localStorage.getItem('fluxpay_user_profile');
-      if (saved) return JSON.parse(saved);
+      if (saved) return cleanProfile(JSON.parse(saved));
     } catch {}
     return DEFAULT_PROFILE;
   });
@@ -121,19 +108,18 @@ export default function App() {
     } catch {}
   };
 
-  // Merchant terminal state (in INR ₹)
-  const [todaySales, setTodaySales] = useState(1428.60);
-  const [pendingSettlement, setPendingSettlement] = useState(1395.00);
-  const [totalTransactionsCount, setTotalTransactionsCount] = useState(48);
-  const [broadcastAmount, setBroadcastAmount] = useState(0.00);
-  const [transactions, setTransactions] = useState<Transaction[]>(INITIAL_TRANSACTIONS);
-
-  // Consumer state (in INR ₹)
-  const [walletBalance, setWalletBalance] = useState(28450.00);
+  const [ledger] = useState<LedgerState>(() => loadLedger());
+  const [todaySales, setTodaySales] = useState(ledger.todaySales);
+  const [pendingSettlement, setPendingSettlement] = useState(ledger.pendingSettlement);
+  const [totalTransactionsCount, setTotalTransactionsCount] = useState(ledger.totalTransactionsCount);
+  const [broadcastAmount, setBroadcastAmount] = useState(0);
+  const [transactions, setTransactions] = useState<Transaction[]>(ledger.transactions);
+  const [walletBalance, setWalletBalance] = useState(ledger.walletBalance);
+  const [demoAccountBalance, setDemoAccountBalance] = useState(ledger.demoAccountBalance);
 
   // Modals state
   const [isTapModalOpen, setIsTapModalOpen] = useState(false);
-  const [tapTargetName, setTapTargetName] = useState('FluxPay SoftPOS Terminal');
+  const [tapTargetName, setTapTargetName] = useState('ManePay terminal');
   const [tapAmount, setTapAmount] = useState(150.00);
   const [isPayoutModalOpen, setIsPayoutModalOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
@@ -175,8 +161,8 @@ export default function App() {
       id: `tx-${Date.now()}`,
       timestamp: new Date().toISOString(),
       timeAgo: 'Just now',
-      tokenHash: '0x' + Math.floor(Math.random() * 0xffffffff).toString(16).toUpperCase(),
-      status: 'settled',
+      tokenHash: `local-${Date.now()}`,
+      status: 'pending',
       direction: txData.direction || 'credit',
     };
 
@@ -205,20 +191,19 @@ export default function App() {
       amount: amount,
       timestamp: new Date().toISOString(),
       timeAgo: 'Just now',
-      tokenHash: '0x' + Math.floor(Math.random() * 0xffffffff).toString(16).toUpperCase(),
-      status: 'settled',
+      tokenHash: `local-${Date.now()}`,
+      status: 'pending',
       iconType: 'nfc',
       direction: 'debit',
-      category: 'Proximity Payment',
+      category: 'Offline payment',
     };
 
     setTransactions((prev) => [userDebitTx, ...prev]);
 
-    // If paying the FluxPay SoftPOS terminal, add to merchant ledger
-    if (payeeName.includes('FluxPay') || payeeName.includes('SoftPOS')) {
+    if (payeeName.includes('ManePay') || payeeName.includes('terminal')) {
       handleNewMerchantTransaction({
         name: profile.name,
-        device: 'Pixel 8 Pro • UWB',
+        device: 'This phone',
         type: 'NFC Tap Completed',
         amount: amount,
         iconType: 'nfc',
@@ -229,17 +214,45 @@ export default function App() {
   };
 
   const handleExecutePayout = (amount: number) => {
+    if (typeof navigator !== 'undefined' && !navigator.onLine) return;
     setPendingSettlement((prev) => parseFloat(Math.max(0, prev - amount).toFixed(2)));
+    setTransactions((prev) =>
+      prev.map((tx) => (tx.status === 'pending' ? { ...tx, status: 'settled' } : tx))
+    );
+    setDemoAccountBalance((prev) => parseFloat((prev + amount).toFixed(2)));
   };
 
   const handleResetDemo = () => {
-    setTransactions(INITIAL_TRANSACTIONS);
-    setTodaySales(1428.60);
-    setPendingSettlement(1395.00);
-    setTotalTransactionsCount(48);
+    setTransactions([]);
+    setTodaySales(0);
+    setPendingSettlement(0);
+    setTotalTransactionsCount(0);
     setBroadcastAmount(0);
-    setWalletBalance(28450.00);
+    setWalletBalance(DEMO_WALLET.openingBalance);
+    setDemoAccountBalance(DEMO_ACCOUNT.openingBalance);
+    try {
+      localStorage.removeItem(LEDGER_KEY);
+    } catch {}
   };
+
+  useEffect(() => {
+    const snapshot: LedgerState = {
+      transactions,
+      todaySales,
+      pendingSettlement,
+      totalTransactionsCount,
+      walletBalance,
+      demoAccountBalance,
+    };
+    try {
+      localStorage.setItem(LEDGER_KEY, JSON.stringify(snapshot));
+    } catch {}
+  }, [transactions, todaySales, pendingSettlement, totalTransactionsCount, walletBalance, demoAccountBalance]);
+
+  const path = window.location.pathname.replace(/\/$/, '') || '/';
+  if (path === '/privacy' || path === '/terms') {
+    return <LegalPage kind={path === '/privacy' ? 'privacy' : 'terms'} />;
+  }
 
   return (
     <div className="min-h-screen bg-[#10141a] text-[#dfe2eb] flex flex-col selection:bg-[#00e599] selection:text-[#00613e]">
@@ -257,6 +270,7 @@ export default function App() {
           onRequestDeviceCharge={(deviceName, amount) => handleInitiateNfcTap(deviceName, amount)}
           onInitiateNfcTap={handleInitiateNfcTap}
           walletBalance={walletBalance}
+          demoAccountBalance={demoAccountBalance}
           onProfileClick={() => setIsProfileModalOpen(true)}
           onOpenHistory={() => setIsHistoryModalOpen(true)}
           onExitDualView={() => setIsDualMode(false)}
@@ -284,11 +298,7 @@ export default function App() {
           {/* Main Screen Content */}
           <main className="flex-1 flex flex-col relative w-full">
             {currentTab === 'onboarding' && (
-              <OnboardingScreen
-                onSelectRoleAndContinue={handleSelectRoleAndContinue}
-                demoSimulationActive={demoSimulationActive}
-                onToggleDemoSimulation={() => setDemoSimulationActive(!demoSimulationActive)}
-              />
+              <OnboardingScreen onSelectRoleAndContinue={handleSelectRoleAndContinue} />
             )}
 
             {currentTab === 'merchant' && (
@@ -303,6 +313,7 @@ export default function App() {
                   currentBroadcastAmount={broadcastAmount}
                   onUpdateBroadcastAmount={setBroadcastAmount}
                   onRequestDeviceCharge={(deviceName, amount) => handleInitiateNfcTap(deviceName, amount)}
+                  demoAccountBalance={demoAccountBalance}
                 />
               </div>
             )}
@@ -322,6 +333,13 @@ export default function App() {
           </main>
 
           {/* Bottom Nav if not on onboarding screen */}
+          {currentTab !== 'onboarding' && (
+            <div className="px-4 pt-2 flex gap-4 text-xs bg-[#10141a]">
+              <a href="/privacy" className="text-[#849589] underline">Privacy</a>
+              <a href="/terms" className="text-[#849589] underline">Terms</a>
+            </div>
+          )}
+
           {currentTab !== 'onboarding' && (
             <BottomNav
               currentTab={currentTab}
@@ -354,6 +372,7 @@ export default function App() {
         isOpen={isPayoutModalOpen}
         onClose={() => setIsPayoutModalOpen(false)}
         pendingAmount={pendingSettlement}
+        accountBalance={demoAccountBalance}
         onExecutePayout={handleExecutePayout}
       />
 

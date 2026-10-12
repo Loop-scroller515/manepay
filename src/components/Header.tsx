@@ -2,6 +2,17 @@ import React from 'react';
 import { StatusBar } from './StatusBar.tsx';
 import { UserProfile, UserRole } from '../types/fluxpay.ts';
 
+function initials(name?: string) {
+  const parts = (name || '').trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return 'MP';
+  return parts.slice(0, 2).map((part) => part[0]?.toUpperCase() || '').join('');
+}
+
+function isStockPhoto(url?: string) {
+  if (!url) return true;
+  return url.includes('googleusercontent') || url.includes('unsplash.com') || url.includes('aida');
+}
+
 interface HeaderProps {
   onProfileClick?: () => void;
   onLogoClick?: () => void;
@@ -21,7 +32,7 @@ export const Header: React.FC<HeaderProps> = ({
   activeRole,
   profile,
 }) => {
-  const avatar = profile?.avatarUrl || 'https://lh3.googleusercontent.com/aida-public/AB6AXuAMk4XDFV_T6RS0_tEz6UOT_Ia3OlDPqovPdMbut3tltwlj9RYxP8S4O9IpFy4gWTAmQrnAWzXs6WVYbERUAsUJDcNNEnyW9YeB8iPL2hLknRy7Vp4zqzWLa6WFH3zv_2aPPa1UgZs52kYESYo3JJtESez3diTFtw0xLyYl-nQohW5yMPrhswPKITsbrHhDwwqPq0fVNttH7phtTuhH53t_B6HCAOu-wExTjW6dkMR-y3-wmf62fPut';
+  const showPhoto = profile?.avatarUrl && !isStockPhoto(profile.avatarUrl);
 
   return (
     <header className="sticky top-0 inset-x-0 z-40 bg-[#10141a]/85 backdrop-blur-xl pt-safe shadow-[0_1px_12px_rgba(0,0,0,0.35)] border-b border-white/[0.04]">
@@ -32,10 +43,9 @@ export const Header: React.FC<HeaderProps> = ({
           className="flex items-center gap-space-sm cursor-pointer select-none group"
         >
           <img
-            alt="ManePay Contactless Logo"
-            className="h-8 w-auto object-contain transition-transform group-hover:scale-105"
-            src="https://lh3.googleusercontent.com/aida/AEtjO1XIhVTgLxKgK1wT8lCIL1L_-ugQvSsH-ZrUsqUGaxSw0xVD7NeXzx2WYMftc1l9BApqK5MMTqiyIYWYoADZssDwMYUf96DUCHGwpEN5u-I4x1ic5Geao1r-s_Pc2cuBozyrp29mvJWDLwnj9S8bSvw9sTCOI-iwwFqbKm2Qq2cD4czVO7iEAztM4de_zuej_46huuaS31-KEsCuAAzpXJI5zEbFmOKptfR23giHY5Wx74YKSE_xPpQckA"
-            referrerPolicy="no-referrer"
+            alt="ManePay"
+            className="h-8 w-8 object-contain"
+            src="/favicon.svg"
           />
           <div className="flex items-center gap-1.5">
             <span className="font-headline-sm text-headline-sm tracking-tight text-[#dfe2eb] font-semibold">
@@ -71,13 +81,17 @@ export const Header: React.FC<HeaderProps> = ({
             aria-label="User Profile"
           >
             <div className="relative">
-              <img
-                alt={profile?.name || 'User Profile'}
-                className="w-7 h-7 rounded-full object-cover border border-[#00e599]"
-                src={avatar}
-                referrerPolicy="no-referrer"
-              />
-              <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-[#00e599] border-2 border-[#10141a]"></span>
+              {showPhoto ? (
+                <img
+                  alt={profile?.name || 'Profile'}
+                  className="w-7 h-7 object-cover border border-[#00e599]"
+                  src={profile?.avatarUrl}
+                />
+              ) : (
+                <span className="w-7 h-7 bg-[#262a31] border border-[#00e599] text-[10px] text-[#dfe2eb] flex items-center justify-center">
+                  {initials(profile?.name)}
+                </span>
+              )}
             </div>
             {profile?.name && (
               <span className="text-xs font-semibold text-[#dfe2eb] max-w-[90px] truncate hidden xs:inline">

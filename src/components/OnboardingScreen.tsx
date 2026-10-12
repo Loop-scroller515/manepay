@@ -5,17 +5,12 @@ import { playHapticClick } from '../utils/audio.ts';
 
 interface OnboardingScreenProps {
   onSelectRoleAndContinue: (role: UserRole) => void;
-  demoSimulationActive: boolean;
-  onToggleDemoSimulation: () => void;
 }
 
 export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
   onSelectRoleAndContinue,
-  demoSimulationActive,
-  onToggleDemoSimulation,
 }) => {
   const [selectedRole, setSelectedRole] = useState<UserRole>('consumer');
-  const [selectedLang, setSelectedLang] = useState('EN-IN');
 
   const handleSelectRole = (role: UserRole) => {
     playHapticClick();
@@ -36,9 +31,6 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
           {/* Brand Proximity Beacon Aura */}
           <div className="relative flex flex-col items-center justify-center pt-space-md pb-space-lg text-center overflow-hidden">
             {/* Atmospheric Radial Glow Behind Radar */}
-            <div className="absolute w-56 h-56 rounded-full bg-[#00e599]/10 blur-3xl pointer-events-none -top-4"></div>
-
-            {/* Animated Radar Waveform Hero Graphic */}
             <div className="relative w-24 h-24 mb-space-md flex items-center justify-center">
               <div className="absolute inset-0 rounded-2xl bg-[#262a31]/80 shadow-[0_0_32px_-6px_rgba(0,229,153,0.3)] flex items-center justify-center border border-white/5"></div>
               {/* Concentric Radiating BLE / NFC Rings */}
@@ -48,7 +40,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
                 viewBox="0 0 100 100"
                 xmlns="http://www.w3.org/2000/svg"
               >
-                <circle className="animate-pulse" cx="50" cy="50" fill="#00E599" r="14" />
+                <circle cx="50" cy="50" fill="#00E599" r="14" />
                 <path
                   d="M30 38C35.5 31.5 42.5 28 50 28C57.5 28 64.5 31.5 70 38"
                   opacity="0.9"
@@ -85,19 +77,11 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
             </div>
 
             {/* Micro System Status Badge */}
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#00e599]/10 border border-[#00e599]/20 mb-space-sm">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#6dffba] animate-ping"></span>
-              <span className="font-label-mono-sm text-label-mono-sm text-[#6dffba] uppercase tracking-wider font-semibold">
-                Antenna Ready • BLE 5.3 + NFC
-              </span>
-            </div>
-
-            {/* Main Value Headline */}
             <h1 className="font-headline-lg-mobile text-headline-lg-mobile text-[#dfe2eb] max-w-xs tracking-tight font-semibold">
-              Fast, Contactless Proximity Payments
+              Store a payment on this phone with no internet
             </h1>
             <p className="font-body-md text-body-md text-[#bacbbe] mt-space-xs max-w-xs">
-              Instant cryptographically secure settlement across wireless physical distance.
+              The merchant keeps a local ledger. Settlement is a later step, after the network returns. This build does not move bank money.
             </p>
           </div>
 
@@ -146,7 +130,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
                     Consumer / Individual
                   </h2>
                   <p className="font-body-sm text-body-sm text-[#bacbbe] mt-1 leading-snug">
-                    Pay nearby merchants with NFC Tap or discover nearby payees via BLE radar. Instant, frictionless payments.
+                    Enter an amount and store it against the demo wallet on this phone.
                   </p>
                 </div>
               </div>
@@ -205,7 +189,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
                     Merchant / Business
                   </h2>
                   <p className="font-body-sm text-body-sm text-[#bacbbe] mt-1 leading-snug">
-                    Turn your mobile phone into an instant contactless POS terminal. Accept NFC taps and BLE broadcast transactions with 0% hardware cost.
+                    Enter an amount and keep it in the ledger on this phone until you settle.
                   </p>
                 </div>
               </div>
@@ -223,54 +207,14 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
           </div>
 
           {/* Quick Options / Demo Toggle Row */}
-          <div className="flex items-center justify-between mt-space-lg px-1 py-1">
-            <button
-              onClick={() => {
-                playHapticClick();
-                setSelectedLang(selectedLang === 'EN-US' ? 'EN-GB' : 'EN-US');
-              }}
-              className="flex items-center gap-space-xs text-[#bacbbe] hover:text-[#dfe2eb] transition-colors py-1 px-2 rounded-lg hover:bg-white/5"
-            >
-              <span className="material-symbols-outlined text-[18px]">language</span>
-              <span className="font-label-mono-sm text-label-mono-sm font-semibold">{selectedLang}</span>
-            </button>
-
-            {/* Proximity Simulation / Demo Mode Pill */}
-            <div
-              className="flex items-center gap-2 cursor-pointer select-none px-3 py-1.5 rounded-full bg-[#262a31] hover:bg-[#31353c] border border-white/5 transition-colors"
-              onClick={() => {
-                playHapticClick();
-                onToggleDemoSimulation();
-              }}
-            >
-              <span
-                className={`font-label-mono-sm text-label-mono-sm transition-colors ${
-                  demoSimulationActive ? 'text-[#6dffba] font-bold' : 'text-[#bacbbe]'
-                }`}
-              >
-                Demo Beacon Simulation
-              </span>
-              <div className="w-8 h-4 rounded-full bg-[#0a0e14] relative flex items-center p-0.5 border border-white/10">
-                <div
-                  className={`w-3 h-3 rounded-full transition-transform duration-200 ${
-                    demoSimulationActive
-                      ? 'bg-[#6dffba] translate-x-4 shadow-[0_0_8px_#6dffba]'
-                      : 'bg-[#849589] translate-x-0'
-                  }`}
-                ></div>
-              </div>
-            </div>
-          </div>
-
-          {/* Primary Confirmation Action & Security Attestation */}
           <div className="mt-space-lg flex flex-col items-center gap-space-md w-full">
             {/* CTA Button */}
             <button
               onClick={handleContinue}
-              className={`w-full h-14 rounded-full font-headline-sm text-headline-sm flex items-center justify-center gap-2 active:scale-[0.98] transition-all duration-200 font-bold ${
+              className={`w-full h-14 font-headline-sm text-headline-sm flex items-center justify-center gap-2 font-bold ${
                 selectedRole === 'consumer'
-                  ? 'bg-[#00e599] text-[#00613e] shadow-[0_0_24px_rgba(0,229,153,0.35)] hover:bg-[#4dffb2]'
-                  : 'bg-[#03b5d3] text-[#00424e] shadow-[0_0_24px_rgba(3,181,211,0.35)] hover:bg-[#4cd7f6]'
+                  ? 'bg-[#00e599] text-[#00613e]'
+                  : 'bg-[#03b5d3] text-[#00424e]'
               }`}
               type="button"
             >
@@ -279,11 +223,9 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
             </button>
 
             {/* Cryptographic Security Footer */}
-            <div className="flex items-center justify-center gap-2 px-space-xs text-center">
-              <span className="material-symbols-outlined text-[#6dffba] text-[16px] shrink-0">encrypted</span>
-              <p className="font-label-mono-sm text-label-mono-sm text-[#bacbbe]">
-                256-bit Hardware-grade Secure Enclave Encryption & PCI-PTS compliant
-              </p>
+            <div className="flex items-center justify-center gap-4 text-sm">
+              <a href="/privacy" className="text-[#849589] underline">Privacy policy</a>
+              <a href="/terms" className="text-[#849589] underline">Terms and conditions</a>
             </div>
           </div>
         </div>

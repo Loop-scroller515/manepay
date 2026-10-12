@@ -209,6 +209,14 @@
   -webkit-font-smoothing: antialiased;
 }
 
+button.rounded-full {
+  border-radius: 4px;
+}
+
+.animate-ping {
+  animation: none;
+}
+
 /* Custom subtle scrollbars */
 ::-webkit-scrollbar {
   width: 4px;

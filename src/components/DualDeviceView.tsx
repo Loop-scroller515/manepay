@@ -16,6 +16,7 @@ interface DualDeviceViewProps {
   onRequestDeviceCharge: (deviceName: string, amount: number) => void;
   onInitiateNfcTap: (targetName: string, amount: number) => void;
   walletBalance: number;
+  demoAccountBalance: number;
   onProfileClick: () => void;
   onOpenHistory: () => void;
   onExitDualView: () => void;
@@ -34,6 +35,7 @@ export const DualDeviceView: React.FC<DualDeviceViewProps> = ({
   onRequestDeviceCharge,
   onInitiateNfcTap,
   walletBalance,
+  demoAccountBalance,
   onProfileClick,
   onOpenHistory,
   onExitDualView,
@@ -95,6 +97,7 @@ export const DualDeviceView: React.FC<DualDeviceViewProps> = ({
                 currentBroadcastAmount={currentBroadcastAmount}
                 onUpdateBroadcastAmount={onUpdateBroadcastAmount}
                 onRequestDeviceCharge={onRequestDeviceCharge}
+                demoAccountBalance={demoAccountBalance}
               />
             </div>
           </div>
