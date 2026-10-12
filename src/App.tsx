@@ -85,7 +85,23 @@ const INITIAL_TRANSACTIONS: Transaction[] = [
 ];
 
 export default function App() {
-  const [currentTab, setCurrentTab] = useState<AppTab>('onboarding');
+  const [activeRole, setActiveRole] = useState<UserRole | null>(() => {
+    try {
+      const saved = localStorage.getItem('manepay_active_role');
+      if (saved === 'consumer' || saved === 'merchant') return saved;
+    } catch {}
+    return null;
+  });
+
+  const [currentTab, setCurrentTab] = useState<AppTab>(() => {
+    try {
+      const saved = localStorage.getItem('manepay_active_role');
+      if (saved === 'consumer') return 'pay';
+      if (saved === 'merchant') return 'merchant';
+    } catch {}
+    return 'onboarding';
+  });
+
   const [demoSimulationActive, setDemoSimulationActive] = useState(true);
   const [isDualMode, setIsDualMode] = useState(false);
 
@@ -123,12 +139,32 @@ export default function App() {
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
 
+  // Locked role selection - persisted until manual logout
   const handleSelectRoleAndContinue = (role: UserRole) => {
+    try {
+      localStorage.setItem('manepay_active_role', role);
+    } catch {}
+    setActiveRole(role);
+    handleUpdateProfile({ ...profile, role });
     if (role === 'consumer') {
       setCurrentTab('pay');
     } else {
       setCurrentTab('merchant');
     }
+  };
+
+  // Manual logout handler - resets role lock so user can re-choose
+  const handleLogout = () => {
+    try {
+      localStorage.removeItem('manepay_active_role');
+    } catch {}
+    setActiveRole(null);
+    setCurrentTab('onboarding');
+    setIsDualMode(false);
+    setIsProfileModalOpen(false);
+    setIsHistoryModalOpen(false);
+    setIsTapModalOpen(false);
+    setIsPayoutModalOpen(false);
   };
 
   const handleNewMerchantTransaction = (
@@ -232,10 +268,15 @@ export default function App() {
           {/* Header if not in onboarding */}
           {currentTab !== 'onboarding' && (
             <Header
-              onLogoClick={() => setCurrentTab('onboarding')}
+              onLogoClick={() => {
+                // Role is locked; logo click does not reset session.
+                // Must explicitly use Log Out to switch roles.
+              }}
               onProfileClick={() => setIsProfileModalOpen(true)}
               onOpenHistory={() => setIsHistoryModalOpen(true)}
-              showRoleBadge={currentTab === 'merchant' ? 'Terminal' : 'Proximity'}
+              onLogout={handleLogout}
+              activeRole={activeRole}
+              showRoleBadge={activeRole === 'merchant' ? 'Merchant POS' : 'Consumer'}
               profile={profile}
             />
           )}
@@ -284,9 +325,16 @@ export default function App() {
           {currentTab !== 'onboarding' && (
             <BottomNav
               currentTab={currentTab}
-              onTabChange={setCurrentTab}
-              onToggleDualMode={() => setIsDualMode(true)}
-              isDualMode={isDualMode}
+              onTabChange={(tab) => {
+                // Prevent role breach: consumer cannot switch to merchant without logout
+                if (activeRole === 'consumer' && tab === 'merchant') return;
+                if (activeRole === 'merchant' && tab === 'pay') return;
+                setCurrentTab(tab);
+              }}
+              activeRole={activeRole}
+              onOpenHistory={() => setIsHistoryModalOpen(true)}
+              onOpenProfile={() => setIsProfileModalOpen(true)}
+              onLogout={handleLogout}
             />
           )}
         </div>
@@ -316,6 +364,7 @@ export default function App() {
         profile={profile}
         onUpdateProfile={handleUpdateProfile}
         onResetDemo={handleResetDemo}
+        onLogout={handleLogout}
       />
 
       {/* User Transaction History Modal */}

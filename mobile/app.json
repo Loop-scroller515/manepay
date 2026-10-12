@@ -1,0 +1,27 @@
+{
+  "expo": {
+    "name": "ManePay",
+    "slug": "manepay",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#10141a",
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#10141a"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.manepay.app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#10141a"
+      },
+      "package": "com.manepay.app"
+    },
+    "web": {
+      "bundler": "metro"
+    }
+  }
+}

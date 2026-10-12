@@ -8,6 +8,7 @@ interface ProfileModalProps {
   profile: UserProfile;
   onUpdateProfile: (updated: UserProfile) => void;
   onResetDemo: () => void;
+  onLogout?: () => void;
 }
 
 const AVATAR_PRESETS = [
@@ -24,6 +25,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
   profile,
   onUpdateProfile,
   onResetDemo,
+  onLogout,
 }) => {
   const [name, setName] = useState(profile.name);
   const [avatarUrl, setAvatarUrl] = useState(profile.avatarUrl);
@@ -282,8 +284,40 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
           </div>
         </div>
 
+        {/* Current Active Role & Session Lock Information */}
+        <div className="mt-4 pt-3 border-t border-white/[0.06] bg-[#10141a]/60 rounded-2xl p-3 border border-white/5">
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="text-xs font-semibold text-[#dfe2eb] flex items-center gap-1.5">
+              <span className="material-symbols-outlined text-[16px] text-[#6dffba]">lock</span>
+              Active Role: <span className="capitalize text-[#6dffba]">{profile.role || 'Consumer'}</span>
+            </span>
+            <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded-full bg-white/5 text-[#849589]">
+              Role Locked
+            </span>
+          </div>
+          <p className="text-[11px] text-[#849589] leading-tight mb-3">
+            To switch between Consumer and Merchant POS terminal, you must manually log out of this session.
+          </p>
+          {onLogout && (
+            <button
+              type="button"
+              onClick={() => {
+                playHapticClick();
+                if (window.confirm('Log out of this account and return to role selection?')) {
+                  onClose();
+                  onLogout();
+                }
+              }}
+              className="w-full py-2.5 rounded-xl bg-red-500/15 hover:bg-red-500/25 text-[#ffb4ab] font-label-mono-sm text-xs font-bold transition-all border border-red-500/30 flex items-center justify-center gap-1.5"
+            >
+              <span className="material-symbols-outlined text-[16px]">logout</span>
+              <span>Log Out to Switch Role</span>
+            </button>
+          )}
+        </div>
+
         {/* Reset Demo Data */}
-        <div className="mt-4 pt-3 border-t border-white/[0.06]">
+        <div className="mt-3 pt-3 border-t border-white/[0.06]">
           <button
             type="button"
             onClick={() => {
@@ -291,7 +325,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
               onResetDemo();
               onClose();
             }}
-            className="w-full py-2 rounded-xl bg-[#262a31] hover:bg-[#31353c] text-[#ffb4ab] font-label-mono-sm text-xs font-semibold transition-colors border border-red-500/20"
+            className="w-full py-2 rounded-xl bg-[#262a31] hover:bg-[#31353c] text-[#849589] hover:text-[#dfe2eb] font-label-mono-sm text-xs font-semibold transition-colors border border-white/5"
           >
             Reset Demo Data & Transaction History
           </button>
