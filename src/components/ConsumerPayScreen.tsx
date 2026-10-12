@@ -2,23 +2,18 @@ import React, { useState } from 'react';
 import { UserProfile, Transaction } from '../types/fluxpay.ts';
 import { playHapticClick } from '../utils/audio.ts';
 import { DEMO_WALLET } from '../demoAccount.ts';
-import {
-  newPaymentId,
-  paymentLink,
-  readIncoming,
-  scanNfcTag,
-  shareOverBluetooth,
-  writeNfcTag,
-  type PayChannel,
-} from '../utils/handoff.ts';
+import { newPaymentId } from '../utils/handoff.ts';
+import { publish, type NearbyPhone } from '../utils/nearby.ts';
 
 interface ConsumerPayScreenProps {
   walletBalance: number;
   profile: UserProfile;
   onOpenHistory: () => void;
   recentTransactions?: Transaction[];
-  onSent: (amount: number, channel: PayChannel, id: string) => void;
-  onReceived: (amount: number, channel: PayChannel, id: string) => boolean;
+  peers: NearbyPhone[];
+  scanning: boolean;
+  selfId: string;
+  onSent: (amount: number, peerName: string, id: string) => void;
 }
 
 export const ConsumerPayScreen: React.FC<ConsumerPayScreenProps> = ({
@@ -26,65 +21,39 @@ export const ConsumerPayScreen: React.FC<ConsumerPayScreenProps> = ({
   profile,
   onOpenHistory,
   recentTransactions = [],
+  peers,
+  scanning,
+  selfId,
   onSent,
-  onReceived,
 }) => {
   const [amountText, setAmountText] = useState('');
   const [status, setStatus] = useState('');
-  const [busy, setBusy] = useState(false);
+  const [busyId, setBusyId] = useState('');
 
   const parsed = Number(amountText);
   const amount = Number.isFinite(parsed) ? parsed : 0;
-  const canPay = amount > 0 && amount <= walletBalance && !busy;
+  const canPay = amount > 0 && amount <= walletBalance;
 
-  const send = async (channel: PayChannel) => {
+  const pay = async (peer: NearbyPhone) => {
+    if (!canPay) return;
     playHapticClick();
-    setBusy(true);
+    setBusyId(peer.id);
     const id = newPaymentId();
-    const url = paymentLink(amount, id, channel);
     try {
-      if (channel === 'nfc') {
-        setStatus('Hold a blank NFC tag on this phone.');
-        await writeNfcTag(url);
-        onSent(amount, channel, id);
-        setAmountText('');
-        setStatus('Tag written. Tap that same tag on the other phone. The payment leaves this phone.');
-      } else {
-        setStatus('Choose Bluetooth and send it to the other phone.');
-        await shareOverBluetooth(url, amount);
-        onSent(amount, channel, id);
-        setAmountText('');
-        setStatus('Sent. The other phone must open the link. The payment has left this phone.');
-      }
+      await publish({
+        t: 'pay',
+        to: peer.id,
+        id,
+        a: Math.round(amount * 100),
+        from: profile.name || 'Phone',
+      });
+      onSent(amount, peer.name, id);
+      setAmountText('');
+      setStatus(`Sent ₹${amount.toFixed(2)} to ${peer.name}.`);
     } catch (error) {
-      const name = error instanceof Error ? error.name : '';
-      if (name === 'AbortError') {
-        setStatus('Cancelled. Nothing was sent.');
-      } else {
-        setStatus(error instanceof Error ? error.message : 'Payment was not sent.');
-      }
+      setStatus(error instanceof Error ? error.message : 'Could not send.');
     } finally {
-      setBusy(false);
-    }
-  };
-
-  const receive = async () => {
-    playHapticClick();
-    setBusy(true);
-    setStatus('Hold the NFC tag on this phone.');
-    try {
-      const url = await scanNfcTag();
-      const incoming = readIncoming(new URL(url).search);
-      if (!incoming) {
-        setStatus('That tag is not a ManePay payment.');
-        return;
-      }
-      const added = onReceived(incoming.amount, incoming.channel, incoming.id);
-      setStatus(added ? `Received ₹${incoming.amount.toFixed(2)} from the other phone.` : 'This payment was already received.');
-    } catch (error) {
-      setStatus(error instanceof Error ? error.message : 'Could not read the tag.');
-    } finally {
-      setBusy(false);
+      setBusyId('');
     }
   };
 
@@ -100,9 +69,7 @@ export const ConsumerPayScreen: React.FC<ConsumerPayScreenProps> = ({
       </div>
 
       <div className="bg-[#1c2026] p-space-md border border-white/[0.06]">
-        <label className="block text-sm text-[#bacbbe]" htmlFor="pay-amount">
-          Amount to send to the other phone
-        </label>
+        <label className="block text-sm text-[#bacbbe]" htmlFor="pay-amount">Amount</label>
         <input
           id="pay-amount"
           inputMode="decimal"
@@ -111,33 +78,33 @@ export const ConsumerPayScreen: React.FC<ConsumerPayScreenProps> = ({
           placeholder="0.00"
           className="mt-2 w-full bg-[#10141a] border border-white/10 px-3 py-3 text-lg text-[#dfe2eb] outline-none"
         />
-        <button
-          type="button"
-          disabled={!canPay}
-          onClick={() => send('nfc')}
-          className="mt-3 w-full h-12 bg-[#00e599] text-[#00613e] font-semibold disabled:opacity-40"
-        >
-          Pay with NFC tag
-        </button>
-        <button
-          type="button"
-          disabled={!canPay}
-          onClick={() => send('bluetooth')}
-          className="mt-2 w-full h-12 bg-[#1c2026] border border-[#00e599] text-[#dfe2eb] font-semibold disabled:opacity-40"
-        >
-          Pay with Bluetooth
-        </button>
-        <button
-          type="button"
-          disabled={busy}
-          onClick={receive}
-          className="mt-2 w-full h-12 bg-[#181c22] border border-white/10 text-[#dfe2eb] font-semibold disabled:opacity-40"
-        >
-          Receive NFC tag
-        </button>
-        {amount > walletBalance && (
-          <p className="mt-2 text-sm text-[#ffb4ab]">Amount is above the balance on this phone.</p>
+      </div>
+
+      <div className="bg-[#181c22] p-space-md border border-white/[0.06]">
+        <div className="text-sm text-[#dfe2eb] font-semibold">Nearby phones</div>
+        <p className="mt-1 text-sm text-[#849589]">
+          {scanning ? 'Scanning for phones with ManePay open.' : 'Tap a phone to pay it.'}
+        </p>
+        <p className="mt-1 text-xs text-[#849589]">This phone: {profile.name || 'Phone'} · {selfId}</p>
+        {peers.length === 0 ? (
+          <p className="mt-3 text-sm text-[#bacbbe]">No other phone yet. Open ManePay on the second phone and stay on this site.</p>
+        ) : (
+          <div className="mt-3 flex flex-col gap-2">
+            {peers.map((peer) => (
+              <button
+                key={peer.id}
+                type="button"
+                disabled={!canPay || busyId === peer.id}
+                onClick={() => pay(peer)}
+                className="w-full text-left bg-[#1c2026] border border-white/10 px-3 py-3 disabled:opacity-40"
+              >
+                <div className="text-[#dfe2eb] font-semibold">{peer.name}</div>
+                <div className="text-xs text-[#849589]">{peer.id} · {canPay ? `Pay ₹${amount.toFixed(2)}` : 'Enter an amount first'}</div>
+              </button>
+            ))}
+          </div>
         )}
+        {amount > walletBalance ? <p className="mt-2 text-sm text-[#ffb4ab]">Amount is above the balance on this phone.</p> : null}
         {status ? <p className="mt-3 text-sm text-[#bacbbe]">{status}</p> : null}
       </div>
 
@@ -151,8 +118,6 @@ export const ConsumerPayScreen: React.FC<ConsumerPayScreenProps> = ({
       >
         Ledger on this phone ({recentTransactions.length})
       </button>
-
-      {profile.name ? <p className="text-xs text-[#849589]">Paying as {profile.name}</p> : null}
     </div>
   );
 };

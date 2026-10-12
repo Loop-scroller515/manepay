@@ -18,7 +18,8 @@ import { DualDeviceView } from './components/DualDeviceView.tsx';
 import { LegalPage } from './components/LegalPage.tsx';
 import { DEMO_ACCOUNT, DEMO_WALLET } from './demoAccount.ts';
 import { appPath, currentAppPath } from './appPath.ts';
-import { claimPayment, clearPaymentQuery, readIncoming, type PayChannel } from './utils/handoff.ts';
+import { claimPayment, clearPaymentQuery, readIncoming } from './utils/handoff.ts';
+import { useNearby } from './utils/nearby.ts';
 
 const LEDGER_KEY = 'manepay_ledger_v1';
 
@@ -181,21 +182,21 @@ export default function App() {
     setIsTapModalOpen(true);
   };
 
-  const handleSentToOtherPhone = (amount: number, channel: PayChannel, id: string) => {
+  const handleSentToOtherPhone = (amount: number, peerName: string, id: string) => {
     claimPayment(id);
     setWalletBalance((prev) => parseFloat(Math.max(0, prev - amount).toFixed(2)));
     setTransactions((prev) => [
       {
         id: `out-${id}`,
-        name: 'Other phone',
-        device: channel === 'nfc' ? 'NFC tag' : 'Bluetooth',
-        type: channel === 'nfc' ? 'NFC Tap Completed' : 'BLE Beam Completed',
+        name: peerName,
+        device: 'Nearby phone',
+        type: 'P2P Instant Beam',
         amount,
         timestamp: new Date().toISOString(),
         timeAgo: 'Just now',
         tokenHash: id,
         status: 'pending',
-        iconType: channel === 'nfc' ? 'nfc' : 'ble',
+        iconType: 'peer',
         direction: 'debit',
         category: 'Sent to another phone',
       },
@@ -203,27 +204,27 @@ export default function App() {
     ]);
   };
 
-  const handleReceivedFromOtherPhone = (amount: number, channel: PayChannel, id: string) => {
+  const handleReceivedFromOtherPhone = (amount: number, fromName: string, id: string) => {
     if (!claimPayment(id)) return false;
     setWalletBalance((prev) => parseFloat((prev + amount).toFixed(2)));
     setTransactions((prev) => [
       {
         id: `in-${id}`,
-        name: 'Other phone',
-        device: channel === 'nfc' ? 'NFC tag' : 'Bluetooth',
-        type: channel === 'nfc' ? 'NFC Tap Completed' : 'BLE Beam Completed',
+        name: fromName,
+        device: 'Nearby phone',
+        type: 'P2P Instant Beam',
         amount,
         timestamp: new Date().toISOString(),
         timeAgo: 'Just now',
         tokenHash: id,
         status: 'pending',
-        iconType: channel === 'nfc' ? 'nfc' : 'ble',
+        iconType: 'peer',
         direction: 'credit',
         category: 'Received from another phone',
       },
       ...prev,
     ]);
-    setNotice(`Received ₹${amount.toFixed(2)} from the other phone.`);
+    setNotice(`Received ₹${amount.toFixed(2)} from ${fromName}.`);
     setActiveRole('consumer');
     setCurrentTab('pay');
     try {
@@ -235,7 +236,7 @@ export default function App() {
   useEffect(() => {
     const incoming = readIncoming(window.location.search);
     if (!incoming) return;
-    handleReceivedFromOtherPhone(incoming.amount, incoming.channel, incoming.id);
+    handleReceivedFromOtherPhone(incoming.amount, 'Other phone', incoming.id);
     clearPaymentQuery();
   }, []);
 
@@ -296,6 +297,10 @@ export default function App() {
     } catch {}
   }, [transactions, todaySales, pendingSettlement, totalTransactionsCount, walletBalance, demoAccountBalance]);
 
+  const { peers, scanning, selfId } = useNearby(profile.name || 'Phone', (payment) => {
+    handleReceivedFromOtherPhone(payment.amount, payment.from, payment.id);
+  });
+
   const path = currentAppPath();
   if (path === '/privacy' || path === '/terms') {
     return <LegalPage kind={path === '/privacy' ? 'privacy' : 'terms'} />;
@@ -323,7 +328,9 @@ export default function App() {
           onExitDualView={() => setIsDualMode(false)}
           profile={profile}
           onSent={handleSentToOtherPhone}
-          onReceived={handleReceivedFromOtherPhone}
+          peers={peers}
+          scanning={scanning}
+          selfId={selfId}
         />
       ) : (
         /* Single Mobile Shell View */
@@ -375,8 +382,10 @@ export default function App() {
                   profile={profile}
                   onOpenHistory={() => setIsHistoryModalOpen(true)}
                   recentTransactions={transactions}
+                  peers={peers}
+                  scanning={scanning}
+                  selfId={selfId}
                   onSent={handleSentToOtherPhone}
-                  onReceived={handleReceivedFromOtherPhone}
                 />
               </div>
             )}

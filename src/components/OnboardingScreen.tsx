@@ -131,7 +131,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
                     Pay
                   </h2>
                   <p className="font-body-sm text-body-sm text-[#bacbbe] mt-1 leading-snug">
-                    Pay the other phone with an NFC tag or Bluetooth.
+                    Open Pay on both phones. This phone lists the other one, then you tap it to pay.
                   </p>
                 </div>
               </div>

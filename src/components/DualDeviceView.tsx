@@ -3,6 +3,7 @@ import { MerchantTerminalScreen } from './MerchantTerminalScreen.tsx';
 import { ConsumerPayScreen } from './ConsumerPayScreen.tsx';
 import { Header } from './Header.tsx';
 import { Transaction, UserProfile } from '../types/fluxpay.ts';
+import { NearbyPhone } from '../utils/nearby.ts';
 
 interface DualDeviceViewProps {
   transactions: Transaction[];
@@ -17,8 +18,10 @@ interface DualDeviceViewProps {
   onInitiateNfcTap: (targetName: string, amount: number) => void;
   walletBalance: number;
   demoAccountBalance: number;
-  onSent: (amount: number, channel: 'nfc' | 'bluetooth', id: string) => void;
-  onReceived: (amount: number, channel: 'nfc' | 'bluetooth', id: string) => boolean;
+  peers: NearbyPhone[];
+  scanning: boolean;
+  selfId: string;
+  onSent: (amount: number, peerName: string, id: string) => void;
   onProfileClick: () => void;
   onOpenHistory: () => void;
   onExitDualView: () => void;
@@ -38,8 +41,10 @@ export const DualDeviceView: React.FC<DualDeviceViewProps> = ({
   onInitiateNfcTap,
   walletBalance,
   demoAccountBalance,
+  peers,
+  scanning,
+  selfId,
   onSent,
-  onReceived,
   onProfileClick,
   onOpenHistory,
   onExitDualView,
@@ -126,8 +131,10 @@ export const DualDeviceView: React.FC<DualDeviceViewProps> = ({
                 profile={profile}
                 onOpenHistory={onOpenHistory}
                 recentTransactions={transactions}
+                peers={peers}
+                scanning={scanning}
+                selfId={selfId}
                 onSent={onSent}
-                onReceived={onReceived}
               />
             </div>
           </div>
